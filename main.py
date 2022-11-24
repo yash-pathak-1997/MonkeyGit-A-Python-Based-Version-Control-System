@@ -1,9 +1,13 @@
-from Logs.Log import Log
+import streamlit as st
+from Logs import log_obj
 
 if __name__ == "__main__":
-    log_obj = Log()
-    log_obj.log("Log file created", True)
+    st.write("""
+        # Monkey Git
+        *Monkey see monkey do!*
+    """)
+    cmd = st.text_input('Git command : ')
 
-    # code will go here
-
-    log_obj.close_logging()
+    if st.button("Execute command"):
+        st.write(cmd)
+        log_obj.log(cmd + " command", True)
