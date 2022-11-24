@@ -4,7 +4,7 @@ import datetime
 class Log:
 
     def __init__(self):
-        self.path_to_log = "./logs/logs/"
+        self.path_to_log = "./Logs/logs/"
         self.curr_ts = str(datetime.datetime.now()).replace(" ", "").replace(".", "").replace(":", "")
         self.logfile_name = self.path_to_log + "log_" + self.curr_ts + ".txt"
         self.logfile_obj = open(self.logfile_name, "w")
