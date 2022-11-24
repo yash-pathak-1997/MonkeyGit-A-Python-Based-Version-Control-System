@@ -17,28 +17,62 @@ if __name__ == "__main__":
         arg_list = cmd.split(" ")
 
         if arg_list[1] == "init":
-            vcs_obj.initialize()
+           result= vcs_obj.initialize()
+           st.write(result)
 
         elif arg_list[1] == "add":
-            vcs_obj.add()
+            if vcs_obj.is_init:
+                vcs_obj.add()
+            else:
+                st.write("not a git repo")
 
         elif arg_list[1] == "status":
-            vcs_obj.status()
+            if vcs_obj.is_init:
+                vcs_obj.status()
+            else:
+                st.write("not a git repo")
+            # vcs_obj.status()
 
         elif arg_list[1] == "commit":
-            vcs_obj.commit()
+            if vcs_obj.is_init:
+                vcs_obj.commit()
+            else:
+                st.write("not a git repo")
+            # vcs_obj.commit()
 
         elif arg_list[1] == "rollback":
-            vcs_obj.rollback()
+            if vcs_obj.is_init:
+                vcs_obj.rollback()
+            else:
+                st.write("not a git repo")
+            # vcs_obj.rollback()
 
         elif arg_list[1] == "diff":
-            vcs_obj.diff()
+            if vcs_obj.is_init:
+                vcs_obj.diff()
+            else:
+                st.write("not a git repo")
+            # vcs_obj.diff()
 
         elif arg_list[1] == "log":
-            vcs_obj.log()
+            if vcs_obj.is_init:
+                vcs_obj.log()
+            else:
+                st.write("not a git repo")
+            # vcs_obj.log()
 
         elif arg_list[1] == "push":
-            vcs_obj.push()
+            if vcs_obj.is_init:
+                vcs_obj.push()
+            else:
+                st.write("not a git repo")
+            # vcs_obj.push()
 
         elif arg_list[1] == "pull":
-            vcs_obj.pull()
+            if vcs_obj.is_init:
+                vcs_obj.pull()
+            else:
+                st.write("not a git repo")
+
+        vcs_obj.update_repo()
+
