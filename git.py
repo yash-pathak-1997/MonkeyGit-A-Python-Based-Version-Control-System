@@ -3,7 +3,7 @@ import sys
 class VCS:
     def __init__(self):
         self.RepoPath=os.getcwd() #initialize with the current working directory
-        self.git=os.path.join(self.RepoPath,".git")
+        self.git=os.path.join(self.RepoPath,".git-vcs")
 
     def initialize(self):
         if not os.path.exists(self.git):
