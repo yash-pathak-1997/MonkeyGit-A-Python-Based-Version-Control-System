@@ -2,13 +2,8 @@ import os
 import pathlib
 import hashlib
 import pandas as pd
-# from Config import UnTrackedDel,UnTrackedMod,UnTrackedNew,TrackedDel,TrackedMod,TrackedNew
-UnTrackedDel="U2"
-UnTrackedMod="U1"
-UnTrackedNew="U0"
-TrackedDel="T2"
-TrackedMod="T1"
-TrackedNew="T0"
+from Config import UnTrackedDel, UnTrackedMod, UnTrackedNew, TrackedDel, TrackedMod, TrackedNew
+
 
 def filepath(path, files_list, sha_list, file_track):
     relative = pathlib.Path(os.path.relpath(path))
@@ -70,7 +65,7 @@ def update_repo_info(csv_path, repo_path, file_list, sha_list, track_flag):
 
     # check modify file
     for i in range(0, len(file_list)):
-        for j in range(0,len(new_file_list)):
+        for j in range(0, len(new_file_list)):
             print("enter modify")
             if file_list[i] == new_file_list[j]:
                 if sha_list[i] != new_sha_list[j]:
@@ -78,24 +73,12 @@ def update_repo_info(csv_path, repo_path, file_list, sha_list, track_flag):
                         sha_list[i] = hash_calc(file_list[i])
 
                     elif track_flag[i] in [TrackedNew, TrackedMod, TrackedDel]:
-                        if i!=len(file_list) and file_list[i] not in file_list[i+1:]:
+                        if i != len(file_list) and file_list[i] not in file_list[i + 1:]:
                             file_list.append(file_list[i])
                             sha_list.append(hash_calc(file_list[i]))
                             track_flag.append(UnTrackedMod)
                         else:
-                            for k in range(0,len(file_list[i+1:])):
-                                if k+i <len(file_list) and file_list[i]==file_list[k+i]:
+                            for k in range(0, len(file_list[i + 1:])):
+                                if k + i < len(file_list) and file_list[i] == file_list[k + i]:
                                     # file_list[k]=file_list[i]
-                                    sha_list[k]=hash_calc(file_list[i])
-
-    #
-    # for i in range(0, len(file_list)):
-    #     print("enyter")
-    #     if sha_list[i] != new_sha_list[i]:
-    #         if track_flag[i] in [UnTrackedNew, UnTrackedMod, UnTrackedDel]:
-    #             sha_list[i] = hash_calc(file_list[i])
-    #
-    #         elif track_flag[i] in [TrackedNew, TrackedMod, TrackedDel]:
-    #             file_list.append(file_list[i])
-    #             sha_list.append(hash_calc(file_list[i]))
-    #             track_flag.append(UnTrackedMod)
+                                    sha_list[k] = hash_calc(file_list[i])

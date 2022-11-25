@@ -4,15 +4,7 @@ import shutil
 import glob
 from utils import filepath, create_df, update_repo_info
 import pandas as pd
-
-# from Config import UnTrackedDel,UnTrackedMod,UnTrackedNew,TrackedDel,TrackedMod,TrackedNew
-
-UnTrackedDel = "U2"
-UnTrackedMod = "U1"
-UnTrackedNew = "U0"
-TrackedDel = "T2"
-TrackedMod = "T1"
-TrackedNew = "T0"
+from Config import UnTrackedDel, UnTrackedMod, UnTrackedNew, TrackedDel, TrackedMod, TrackedNew
 
 
 class VCS:
@@ -77,7 +69,6 @@ class VCS:
                             df['track_flag'][ind] = TrackedNew
                         if df['track_flag'][ind] == UnTrackedMod:
                             df['track_flag'][ind] = TrackedMod
-
 
     def pull(self):
         pass

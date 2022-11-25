@@ -3,16 +3,9 @@ import pandas as pd
 import streamlit as st
 from Logs import log_obj
 from git import VCS
-# from Config import conf_obj
-UnTrackedDel="U2"
-UnTrackedMod="U1"
-UnTrackedNew="U0"
-TrackedDel="T2"
-TrackedMod="T1"
-TrackedNew="T0"
+from Config import conf_obj, UnTrackedNew, UnTrackedMod, UnTrackedDel, TrackedNew, TrackedMod, TrackedDel
+
 if __name__ == "__main__":
-    conf_obj={}
-    conf_obj["cwd"]="./GitTest"
     vcs_obj = VCS(conf_obj["cwd"])
     st.write("""
         # Monkey Git
@@ -25,6 +18,7 @@ if __name__ == "__main__":
         st.write("Current Working Directory : " + conf_obj["cwd"])
         log_obj.log(cmd + " command", True)
         arg_list = cmd.split(" ")
+
         if vcs_obj.is_init and arg_list[1] != "init":
             df = pd.read_csv(vcs_obj.repo_info)
             vcs_obj.files_list = df['filename'].tolist()
@@ -58,36 +52,42 @@ if __name__ == "__main__":
             else:
                 st.write("not a git repo")
             # vcs_obj.status()
+
         elif arg_list[1] == "commit":
             if vcs_obj.is_init:
                 vcs_obj.commit()
             else:
                 st.write("not a git repo")
             # vcs_obj.commit()
+
         elif arg_list[1] == "rollback":
             if vcs_obj.is_init:
                 vcs_obj.rollback()
             else:
                 st.write("not a git repo")
             # vcs_obj.rollback()
+
         elif arg_list[1] == "diff":
             if vcs_obj.is_init:
                 vcs_obj.diff()
             else:
                 st.write("not a git repo")
             # vcs_obj.diff()
+
         elif arg_list[1] == "log":
             if vcs_obj.is_init:
                 vcs_obj.log()
             else:
                 st.write("not a git repo")
             # vcs_obj.log()
+
         elif arg_list[1] == "push":
             if vcs_obj.is_init:
                 vcs_obj.push()
             else:
                 st.write("not a git repo")
             # vcs_obj.push()
+
         elif arg_list[1] == "pull":
             if vcs_obj.is_init:
                 vcs_obj.pull()
