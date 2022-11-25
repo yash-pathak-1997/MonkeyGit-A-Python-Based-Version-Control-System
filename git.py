@@ -1,8 +1,9 @@
+import datetime
 import os
 import sys
 import shutil
 import glob
-from utils import filepath, create_df, update_repo_info
+from utils import filepath, create_df, update_repo_info, create_log_df
 import pandas as pd
 from Config import UnTrackedDel, UnTrackedMod, UnTrackedNew, TrackedDel, TrackedMod, TrackedNew
 
@@ -12,14 +13,17 @@ class VCS:
         self.RepoPath = cwd  # initialize with the current working directory
         self.git = os.path.join(self.RepoPath, ".git-vcs")
         self.repo_info = os.path.join(self.git, "repo_info.csv")
+        self.log_info = os.path.join(self.git, "log_info.csv")
         self.repo_area = os.path.join(self.git, "Repository")
         self.files_list = list()
         self.sha_list = list()
         self.track_flag = list()
-        self.is_init = True
+        if os.path.exists(self.git):
+            self.is_init = True
+        else:
+            self.is_init = False
 
     def initialize(self):
-        self.is_init = True
         if os.path.exists(self.git):
             shutil.rmtree(self.git)
             print("Reinitializing Git ... ")
@@ -27,25 +31,35 @@ class VCS:
         os.mkdir(self.git)
         os.mkdir(self.repo_area)
         filepath(self.RepoPath, self.files_list, self.sha_list, self.track_flag)
+
+        # create repo_info.csv
         df = create_df(self.files_list, self.sha_list, self.track_flag)
-        df.to_csv(self.repo_info)
-        print("Self", self.files_list, self.sha_list, self.track_flag)
+        df.to_csv(self.repo_info, index=False)
+
+        # create log_info.csv
+        df_log = create_log_df(["init"], [datetime.datetime.now()], ["NA"])
+        df_log.to_csv(self.log_info, index=False)
 
     def status(self):
         df = pd.read_csv(self.repo_info)
-        # print(df)
-        untrack = []
-        track = []
-        modified = []
 
-        for ind in df.index:
-            if df['track_flag'][ind] is "U0":
-                untrack.append(df['filename'][ind])
-            elif df['track_flag'][ind] is "U1":
-                track.append(df['filename'][ind])
-            elif df['track_flag'][ind] is "U2":
-                modified.append(df['filename'][ind])
-        # print(untrack,track,modified)
+        u0_list = df[df["track_flag"] == "U0"]['filename'].to_list()
+        u1_list = df[df["track_flag"] == "U1"]['filename'].to_list()
+        u2_list = df[df["track_flag"] == "U2"]['filename'].to_list()
+        t0_list = df[df["track_flag"] == "T0"]['filename'].to_list()
+        t1_list = df[df["track_flag"] == "T1"]['filename'].to_list()
+        t2_list = df[df["track_flag"] == "T2"]['filename'].to_list()
+
+        res = {
+            "untracked_new": u0_list,
+            "untracked_mod": u1_list,
+            "untracked_del": u2_list,
+            "tracked_new": t0_list,
+            "tracked_mod": t1_list,
+            "tracked_del": t2_list
+        }
+
+        return res
 
     def update_repo(self):
         update_repo_info(self.repo_info, self.RepoPath, self.files_list, self.sha_list, self.track_flag)
@@ -70,6 +84,19 @@ class VCS:
                         if df['track_flag'][ind] == UnTrackedMod:
                             df['track_flag'][ind] = TrackedMod
 
+    def log(self, cmd):
+        insert_obj = {
+            "Command": cmd,
+            "Timestamp": datetime.datetime.now(),
+            "CommitId": "NA"
+        }
+        insert_obj = pd.json_normalize(insert_obj)
+
+        df = pd.read_csv(self.log_info)
+        df = pd.concat([df, insert_obj], ignore_index=True)
+        df["ID"] = df.index
+        df.to_csv(self.log_info, index=False)
+
     def pull(self):
         pass
 
@@ -85,5 +112,4 @@ class VCS:
     def commit(self):
         pass
 
-    def log(self):
-        pass
+
