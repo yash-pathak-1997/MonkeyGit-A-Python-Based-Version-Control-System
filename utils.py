@@ -1,3 +1,4 @@
+import json
 import os
 import pathlib
 import hashlib
@@ -18,17 +19,33 @@ def filepath(path, files_list, sha_list, file_track):
 
 def hash_calc(filename):
     sha256_hash = hashlib.sha256()
-    fopen = open(filename, "rb")
-    for byte_block in iter(lambda: fopen.read(4096), b""):
+    f = open(filename, "rb")
+    for byte_block in iter(lambda: f.read(4096), b""):
         sha256_hash.update(byte_block)
     return sha256_hash.hexdigest()
 
 
 def create_df(files_list, sha_list, track_flag):
-    df = pd.DataFrame()
+    cols_list = ["ID", "filename", "sha", "track_flag"]
+    df = pd.DataFrame(columns=cols_list)
     df['filename'] = files_list
     df['sha'] = sha_list
     df['track_flag'] = track_flag
+    df1 = pd.DataFrame()
+    df = pd.concat([df, df1], ignore_index=True)
+    df["ID"] = df.index
+    return df
+
+
+def create_log_df(cmd, timestamp, cid):
+    cols_list = ["ID", "Command", "Timestamp", "CommitId"]
+    df = pd.DataFrame(columns=cols_list)
+    df['Command'] = cmd
+    df['Timestamp'] = timestamp
+    df['CommitId'] = cid
+    df1 = pd.DataFrame()
+    df = pd.concat([df, df1], ignore_index=True)
+    df["ID"] = df.index
     return df
 
 
