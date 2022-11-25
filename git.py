@@ -4,7 +4,15 @@ import shutil
 import glob
 from utils import filepath, create_df, update_repo_info
 import pandas as pd
-from Config import UnTrackedDel,UnTrackedMod,UnTrackedNew,TrackedDel,TrackedMod,TrackedNew
+
+# from Config import UnTrackedDel,UnTrackedMod,UnTrackedNew,TrackedDel,TrackedMod,TrackedNew
+
+UnTrackedDel = "U2"
+UnTrackedMod = "U1"
+UnTrackedNew = "U0"
+TrackedDel = "T2"
+TrackedMod = "T1"
+TrackedNew = "T0"
 
 
 class VCS:
@@ -12,6 +20,7 @@ class VCS:
         self.RepoPath = cwd  # initialize with the current working directory
         self.git = os.path.join(self.RepoPath, ".git-vcs")
         self.repo_info = os.path.join(self.git, "repo_info.csv")
+        self.repo_area = os.path.join(self.git, "Repository")
         self.files_list = list()
         self.sha_list = list()
         self.track_flag = list()
@@ -24,6 +33,7 @@ class VCS:
             print("Reinitializing Git ... ")
 
         os.mkdir(self.git)
+        os.mkdir(self.repo_area)
         filepath(self.RepoPath, self.files_list, self.sha_list, self.track_flag)
         df = create_df(self.files_list, self.sha_list, self.track_flag)
         df.to_csv(self.repo_info)
@@ -53,28 +63,21 @@ class VCS:
 
     def add(self, arg_list):
         df = pd.read_csv(self.repo_info)
-        temp = df
-        flag = 0
         if arg_list[0] == '.':
-            print("Added all")
             for ind in df.index:
-                # if df['track_flag'][ind]!="1":
-                if df['track_flag'][ind] == "3":
-                    temp.drop(temp.index[ind - flag], inplace=True)
-                    flag = flag + 1
-                else:
-                    temp['track_flag'][ind - flag] = "1"
+                if df['track_flag'][ind] == UnTrackedNew:
+                    df['track_flag'][ind] = TrackedNew
+                if df['track_flag'][ind] == UnTrackedMod:
+                    df['track_flag'][ind] = TrackedMod
         else:
-            for name in arg_list:
+            for filename in arg_list:
                 for ind in df.index:
-                    if df['filename'][ind] == name:
-                        if df['track_flag'][ind] == "3":
-                            temp.drop(temp.index[ind - flag], inplace=True)
-                            flag = flag + 1
-                        else:
-                            temp['track_flag'][ind - flag] = "1"
-        df = temp
-        df.to_csv(self.repo_info)
+                    if df['filename'][ind] == filename:
+                        if df['track_flag'][ind] == UnTrackedNew:
+                            df['track_flag'][ind] = TrackedNew
+                        if df['track_flag'][ind] == UnTrackedMod:
+                            df['track_flag'][ind] = TrackedMod
+
 
     def pull(self):
         pass

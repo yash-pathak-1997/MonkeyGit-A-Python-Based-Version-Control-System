@@ -1,12 +1,18 @@
 import json
-
 import pandas as pd
 import streamlit as st
 from Logs import log_obj
 from git import VCS
-from Config import conf_obj
-
+# from Config import conf_obj
+UnTrackedDel="U2"
+UnTrackedMod="U1"
+UnTrackedNew="U0"
+TrackedDel="T2"
+TrackedMod="T1"
+TrackedNew="T0"
 if __name__ == "__main__":
+    conf_obj={}
+    conf_obj["cwd"]="./GitTest"
     vcs_obj = VCS(conf_obj["cwd"])
     st.write("""
         # Monkey Git
