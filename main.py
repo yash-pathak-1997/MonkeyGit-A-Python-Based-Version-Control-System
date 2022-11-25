@@ -45,7 +45,7 @@ if __name__ == "__main__":
             if vcs_obj.is_init:
                 if len(arg_list) > 2:
                     vcs_obj.log(arg_list[1])
-                if arg_list > 2:
+                if len(arg_list) > 2:
                     vcs_obj.add(arg_list[2:])
                 else:
                     print("Nothing specified, nothing added!")

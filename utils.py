@@ -57,11 +57,15 @@ def update_repo_info(csv_path, repo_path, file_list, sha_list, track_flag):
     filepath(repo_path, new_file_list, new_sha_list, new_track_flag)
 
     # check add new file
+    ind=0
     for i in new_file_list:
+
         if i not in file_list:
             file_list.append(i)
             sha_list.append(hash_calc(i))
             track_flag.append(UnTrackedNew)
+
+        ind=ind+1
 
     # check delete file
     del_list = list()
@@ -89,6 +93,11 @@ def update_repo_info(csv_path, repo_path, file_list, sha_list, track_flag):
                 if sha_list[i] != new_sha_list[j]:
                     if track_flag[i] in [UnTrackedNew, UnTrackedMod, UnTrackedDel]:
                         sha_list[i] = hash_calc(file_list[i])
+                        print("..........................")
+                        print(file_list[i],track_flag[i])
+                        print("..........................")
+                    if track_flag[i] in [UnTrackedDel]:
+                        track_flag[i]=UnTrackedNew
 
                     elif track_flag[i] in [TrackedNew, TrackedMod, TrackedDel]:
                         if i != len(file_list) and file_list[i] not in file_list[i + 1:]:
