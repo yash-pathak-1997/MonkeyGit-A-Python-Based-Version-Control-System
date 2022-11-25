@@ -8,6 +8,14 @@ import pandas as pd
 from Config import UnTrackedDel, UnTrackedMod, UnTrackedNew, TrackedDel, TrackedMod, TrackedNew
 
 
+class File:
+    def __init__(self, ID, filename, sha, track_status):
+        self.ID = ID
+        self.filename = filename
+        self.sha = sha
+        self.track_status = track_status
+
+
 class VCS:
     def __init__(self, cwd):
         self.RepoPath = cwd  # initialize with the current working directory
@@ -67,6 +75,15 @@ class VCS:
         print(df)
         df.to_csv(self.repo_info)
 
+    def print(self):
+        # read repo info
+        df = pd.read_csv(self.repo_info)
+        people = df.to_records(index=False)
+
+        # revert and write back
+        final_df = pd.DataFrame(people).iloc[:, 1:]
+        print(final_df)
+
     def add(self, arg_list):
         df = pd.read_csv(self.repo_info)
         if arg_list[0] == '.':
@@ -111,5 +128,3 @@ class VCS:
 
     def commit(self):
         pass
-
-
