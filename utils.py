@@ -26,14 +26,13 @@ def hash_calc(filename):
 
 
 def create_df(files_list, sha_list, track_flag):
-    cols_list = ["ID", "filename", "sha", "track_flag"]
+    cols_list = ["filename", "sha", "track_flag"]
     df = pd.DataFrame(columns=cols_list)
     df['filename'] = files_list
     df['sha'] = sha_list
     df['track_flag'] = track_flag
     df1 = pd.DataFrame()
     df = pd.concat([df, df1], ignore_index=True)
-    df["ID"] = df.index
     return df
 
 
