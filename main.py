@@ -39,7 +39,7 @@ if __name__ == "__main__":
 
         elif arg_list[1] == "add":
             if vcs_obj.is_init:
-                if arg_list > 2:
+                if len(arg_list) > 2:
                     vcs_obj.add(arg_list[2:])
                 else:
                     print("Nothing specified,Nothing Added")

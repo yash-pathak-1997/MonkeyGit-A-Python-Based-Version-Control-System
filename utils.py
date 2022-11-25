@@ -58,10 +58,12 @@ def update_repo_info(csv_path, repo_path, file_list, sha_list, track_flag):
                 file_list.append(file_list[i])
                 sha_list.append(None)
                 track_flag.append(UnTrackedDel)
+    f=0
     for i in del_list:
-        del file_list[i]
-        del sha_list[i]
-        del track_flag[i]
+        del file_list[i-f]
+        del sha_list[i-f]
+        del track_flag[i-f]
+        f=f+1
 
     # check modify file
     for i in range(0, len(file_list)):
@@ -82,3 +84,5 @@ def update_repo_info(csv_path, repo_path, file_list, sha_list, track_flag):
                                 if k + i < len(file_list) and file_list[i] == file_list[k + i]:
                                     # file_list[k]=file_list[i]
                                     sha_list[k] = hash_calc(file_list[i])
+
+

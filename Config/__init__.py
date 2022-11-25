@@ -1,5 +1,4 @@
 import json
-
 jsonFile = open("./Config/config.json", "r")
 conf_obj = json.load(jsonFile)
 UnTrackedNew = "U0"
