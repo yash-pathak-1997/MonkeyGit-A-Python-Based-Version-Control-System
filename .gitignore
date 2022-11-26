@@ -6,3 +6,9 @@ ashish.py
 /GitTest/
 /GitTest/.git-vcs
 /GitTest/f1
+Logs/__pycache__/__init__.cpython-310.pyc
+__pycache__/git.cpython-310.pyc
+__pycache__/utils.cpython-310.pyc
+Logs/__pycache__/Log.cpython-310.pyc
+.DS_Store
+__pycache__/git.cpython-310.pyc

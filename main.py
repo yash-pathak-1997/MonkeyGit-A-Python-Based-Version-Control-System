@@ -93,9 +93,11 @@ if __name__ == "__main__":
             else:
                 st.write("Not a Git Repo!")
 
+        # git rollback -s <number> / -c <commit id>
         elif arg_list[1] == "rollback":
             if vcs_obj.is_init:
-                vcs_obj.rollback()
+                res = vcs_obj.rollback(arg_list[2:])
+                st.write(res)
             else:
                 st.write("Not a Git Repo!")
 
