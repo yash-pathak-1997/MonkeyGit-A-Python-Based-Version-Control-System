@@ -2,12 +2,14 @@ import json
 import os
 import pathlib
 import hashlib
+import shutil
+
 import pandas as pd
 from Config import UnTrackedDel, UnTrackedMod, UnTrackedNew, TrackedDel, TrackedMod, TrackedNew
 
 
 def filepath(path, files_list, sha_list, file_track):
-    relative = pathlib.Path(os.path.relpath(path))
+    relative = pathlib.Path(os.path.abspath(path))
     for p in pathlib.Path(relative).iterdir():
         if p.is_file():
             files_list.append(str(p).replace("../", ""))
@@ -111,3 +113,40 @@ def update_repo_info(csv_path, repo_path, file_list, sha_list, track_flag):
                                     sha_list[k] = hash_calc(file_list[i])
 
 
+# create files and folder when rollback
+def create_on_move(df, repo_path, repo_area):
+    records = df.to_records(index=False)
+
+    # clear working directory except .git-vcs
+    for root, dirs, files in os.walk(repo_path):
+        for f in files:
+            os.unlink(os.path.join(root, f))
+        for d in dirs:
+            if "git-vcs" not in d:
+                shutil.rmtree(os.path.join(root, d))
+
+    # delete all files which are not tracked from repo_info
+    del_list = list()
+    for i in range(0, len(records)):
+        if "T" not in records[i].track_flag:
+            del_list.append(i)
+
+    for i in del_list:
+        del records[i]
+
+    # create all files and folders in working directory
+    for record in records:
+        source = os.path.join(repo_area, record.sha)
+        des = record.filename
+
+        des_path = str(record.filename).replace(("\\" + str(record.filename).split("\\")[-1]), "")
+        is_exist = os.path.exists(des_path)
+        if not is_exist:
+            os.makedirs(des_path)
+
+        shutil.copyfile(source, des)
+        record.track_flag = "T0"
+
+    # revert and write back
+    final_df = pd.DataFrame(records).iloc[:, 1:]
+    return final_df
