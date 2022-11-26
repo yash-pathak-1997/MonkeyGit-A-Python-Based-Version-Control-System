@@ -194,8 +194,24 @@ class VCS:
         commit_version = os.path.join(self.commit_area, commit_folder_name)
         os.mkdir(commit_version)
         shutil.copy(self.repo_info, commit_version)
-        # f_commit_head=open(self.commit_head,"r")
-        # f_commit_info = open(self.commit_head, "w")
+        f_commit_head=open(self.commit_head,"r")
+        f_commit_info = open(self.commit_info, "r")
+        # print(f_commit_head.read())
+        curr_head=f_commit_head.read()
+        # print(json.loads(f_commit_info.read()))
+        commit_pair = json.loads(f_commit_info.read())
+        commit_pair[ commit_folder_name ] = curr_head
+        commit_pair=str(commit_pair).replace("'","\"")
+        print(commit_pair)
+
+        #commit_pair["\""+commit_folder_name+"\""] = "\""+curr_head+"\""
+        curr_head = commit_folder_name
+        f_commit_head.close()
+        f_commit_info.close()
+        f_commit_head = open(self.commit_head, "w")
+        f_commit_info = open(self.commit_info, "w")
+        f_commit_head.write(curr_head)
+        f_commit_info.write(str(commit_pair))
         # curr_head=f_commit_head.read()
         # print("current head is -> "+curr_head)
         # commit_pair=json.load(f_commit_info)
