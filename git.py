@@ -1,8 +1,12 @@
 import datetime
+import hashlib
 import os
 import sys
+import json
 import shutil
 import glob
+import datetime
+import time
 from utils import filepath, create_df, update_repo_info, create_log_df
 import pandas as pd
 from Config import conf_obj,UnTrackedDel, UnTrackedMod, UnTrackedNew, TrackedDel, TrackedMod, TrackedNew
@@ -23,6 +27,9 @@ class VCS:
         self.repo_info = os.path.join(self.git, "repo_info.csv")
         self.log_info = os.path.join(self.git, "log_info.csv")
         self.repo_area = os.path.join(self.git, "Repository")
+        self.commit_area=os.path.join(self.git, "Commit")
+        self.commit_head=os.path.join(self.git,"commit_head.txt")
+        self.commit_info=os.path.join(self.git,"commit_info.json")
         self.files_list = list()
         self.sha_list = list()
         self.track_flag = list()
@@ -38,6 +45,11 @@ class VCS:
 
         os.mkdir(self.git)
         os.mkdir(self.repo_area)
+        os.mkdir(self.commit_area)
+        f=open(self.commit_head,"w")
+        f.write("null")
+        f = open(self.commit_info, "w")
+        f.write("{}")
         filepath(self.RepoPath, self.files_list, self.sha_list, self.track_flag)
 
         # create repo_info.csv
@@ -193,6 +205,47 @@ class VCS:
         df["ID"] = df.index
         df.to_csv(self.log_info, index=False)
 
+    def commit(self):
+        time_stamp=str(time.time())
+        t_encrypt=time_stamp.encode("utf-8")
+        hash_obj=hashlib.sha256()
+        hash_obj.update(t_encrypt)
+        commit_folder_name=hash_obj.hexdigest()
+        commit_version=os.path.join(self.commit_area,commit_folder_name)
+        os.mkdir(commit_version)
+        shutil.copy(self.repo_info,commit_version)
+        # f_commit_head=open(self.commit_head,"r")
+        # f_commit_info = open(self.commit_head, "w")
+        # curr_head=f_commit_head.read()
+        # print("current head is -> "+curr_head)
+        # commit_pair=json.load(f_commit_info)
+        # print("commit pair is -> " + commit_pair)
+        # commit_pair[commit_folder_name]=curr_head
+        # curr_head=commit_folder_name
+        # f_commit_info.write(commit_pair)
+        # f_commit_head.close()
+        # f_commit_head=open(self.commit_head,"w")
+        # f_commit_head.write(curr_head)
+
+
+
+
+    def restore(self):
+        path_var="GitTest/f2/f3/f1a2.txt"
+        if os.path.exists(path_var):
+            print("yes exists")
+        else:
+            dir=os.path.exists(path_var[0:path_var.rfind('/')])
+            print(os.path.exists(path_var[0:path_var.rfind('/')]))
+            file_name=path_var[path_var.rfind('/')+1:]
+            print(file_name)
+            if os.path.exists(path_var[0:path_var.rfind('/')]):
+                print("directory exists")
+            else:
+                os.mkdir(dir)
+            f=open(path_var,"w").close()
+
+
     def pull(self):
         pass
 
@@ -205,5 +258,3 @@ class VCS:
     def diff(self):
         pass
 
-    def commit(self):
-        pass
