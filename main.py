@@ -52,6 +52,9 @@ if __name__ == "__main__":
             else:
                 st.write("Not a Git Repo!!")
 
+        elif arg_list[1] == "restore":
+            vcs_obj.restore()
+
         # git status
         elif arg_list[1] == "status":
             if vcs_obj.is_init:
@@ -59,11 +62,11 @@ if __name__ == "__main__":
                 res = vcs_obj.status()
                 st.write("Tracked --> ")
                 for i in res["tracked_new"]:
-                    st.success("New File : "+i)
+                    st.success("New File : " + i)
                 for i in res["tracked_mod"]:
-                    st.success("Modified File : "+i)
+                    st.success("Modified File : " + i)
                 for i in res["tracked_del"]:
-                    st.success("Deleted File : "+i)
+                    st.success("Deleted File : " + i)
 
                 st.write("Untracked --> ")
                 for i in res["untracked_new"]:
