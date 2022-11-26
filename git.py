@@ -229,8 +229,43 @@ class VCS:
     def push(self):
         pass
 
-    def rollback(self):
-        pass
+    def rollback(self, arg_list):
+        f_commit = open(self.commit_info, "r")
+        f_cc = open(self.commit_head, "r")
+        commit_dict = json.load(f_commit)
+        if arg_list[0] == "-s":
+            steps = arg_list[1]
+            if steps <= 0:
+                return "Invalid steps"
+            curr_commit = f_cc.read()
+            while steps > 0:
+                curr_commit = commit_dict[curr_commit]
+                steps = steps-1
+            
+            if curr_commit is not None and curr_commit != "":
+                repo_info_new = os.path.join(self.commit_area, curr_commit + "/repo_info.csv")
+                df = pd.read_csv(repo_info_new)
+                df = create_on_move(df, self.RepoPath, self.repo_area)
+                df.to_csv(self.repo_info, index=False)
+            else:
+                return "Rollback not possible"
+        else:
+            curr_commit = arg_list[1]
+            if curr_commit in commit_dict:
+                repo_info_new = os.path.join(self.commit_area, curr_commit + "/repo_info.csv")
+                df = pd.read_csv(repo_info_new)
+                df = create_on_move(df, self.RepoPath, self.repo_area)
+                df.to_csv(self.repo_info, index=False)
+            else:
+                return "Commit Id not found"
+
+        f_commit.close()
+        f_cc.close()
+        f_cc = open(self.commit_head, "r")
+        f_cc.write(curr_commit)
+        f_cc.close()
+
+        return "Success"
 
     def diff(self):
         pass
