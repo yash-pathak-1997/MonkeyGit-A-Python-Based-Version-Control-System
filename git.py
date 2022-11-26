@@ -6,7 +6,7 @@ import json
 import shutil
 import datetime
 import time
-from utils import filepath, create_df, update_repo_info, create_log_df
+from utils import filepath, create_df, update_repo_info, create_log_df,create_on_move
 import pandas as pd
 from Config import conf_obj, UnTrackedDel, UnTrackedMod, UnTrackedNew, TrackedDel, TrackedMod, TrackedNew
 
@@ -292,10 +292,6 @@ class VCS:
                 fp.write(f.read())
                 f.close()
                 fp.close()
-
-
-        pass
-
 
     def pull(self):
         pass
