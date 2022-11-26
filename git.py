@@ -13,14 +13,36 @@ from Config import conf_obj, UnTrackedDel, UnTrackedMod, UnTrackedNew, TrackedDe
 
 class VCS:
     def __init__(self, cwd):
+
         self.RepoPath = cwd  # initialize with the current working directory
         self.git = os.path.join(self.RepoPath, ".git-vcs")
         self.repo_info = os.path.join(self.git, "repo_info.csv")
         self.log_info = os.path.join(self.git, "log_info.csv")
         self.repo_area = os.path.join(self.git, "Repository")
         self.commit_area = os.path.join(self.git, "Commit")
+
         self.commit_head = os.path.join(self.git, "commit_head.txt")
         self.commit_info = os.path.join(self.git, "commit_info.json")
+
+
+        #print("----------------")
+        #print(cwd[cwd.rfind("/"):])
+        #print(cwd[cwd.rfind("/"):]+"_remote")
+        #var=cwd[cwd.rfind("/"):]+"_remote"
+
+        self.remote_dir_path = os.path.join(self.git, "Remotes")
+        self.remote_area=self.remote_dir_path+cwd[cwd.rfind("/"):] + "_remote"
+        self.remote_main = self.remote_dir_path+ cwd[cwd.rfind("/"):] + "_remote"+cwd[cwd.rfind("/"):] +"_main"
+
+        #print(os.path.join(self.remote_dir_path , var))
+        #self.remote_area=os.path.join(self.remote_dir_path,(cwd[cwd.rfind("/"):]+"_remote"))
+        #self.remote_main=os.path.join(self.remote_area,(cwd[cwd.rfind("/"):]+"_main"))
+
+        print(self.remote_dir_path)
+        print(self.remote_area)
+        print(self.remote_main)
+
+
         self.files_list = list()
         self.sha_list = list()
         self.track_flag = list()
@@ -37,6 +59,12 @@ class VCS:
         os.mkdir(self.git)
         os.mkdir(self.repo_area)
         os.mkdir(self.commit_area)
+        print(self.remote_dir_path)
+        print(self.remote_area)
+        print(self.remote_main)
+        os.mkdir(self.remote_dir_path)
+        os.mkdir(self.remote_area)
+        os.mkdir(self.remote_main)
         f = open(self.commit_head, "w")
         f.write("null")
         f = open(self.commit_info, "w")
@@ -90,6 +118,7 @@ class VCS:
     def add(self, arg_list):
         df = pd.read_csv(self.repo_info)
         cwd = conf_obj["cwd"]
+        # print(".....................",cwd)
         if arg_list[0] == '.':
             for ind in df.index:
                 flag = 0
@@ -223,11 +252,54 @@ class VCS:
         # f_commit_head=open(self.commit_head,"w")
         # f_commit_head.write(curr_head)
 
+    def push(self):
+        f=open(self.commit_head,"r")
+        curr_commit=f.read()
+        f.close()
+        df=pd.read_csv(os.path.join(self.commit_area,curr_commit)+"/repo_info.csv")
+        print(df)
+        for i in df.index:
+            if df['track_flag'][i] in [TrackedNew,TrackedMod,TrackedDel]:
+                path=df['filename'][i]
+                sha=df['sha'][i]
+                len1=len(self.RepoPath)
+                file_path=path[path.find(self.RepoPath)+len1+1:]
+                print(file_path)
+                create_dir_path=self.remote_main
+                while file_path.find("/")!=-1:
+                    ind=file_path.find("/")
+                    if ind==0:
+                        fold = file_path[0:ind+1]
+                        file_path = file_path[ind+1:]
+                    else:
+                        fold = file_path[0:ind]
+                        file_path = file_path[ind:]
+                    if(fold=="/"):
+                        continue
+                    print("folder->"+fold)
+                    create_dir_path=os.path.join(create_dir_path,fold)
+                    if os.path.exists(create_dir_path) == False:
+                        os.mkdir(create_dir_path)
+
+
+                    #print(file_path)
+                    #break
+                print("file->"+file_path)
+                file_final_path=os.path.join(create_dir_path,file_path)
+                source_path=os.path.join(self.repo_area,sha)
+                f=open(source_path+"."+file_path.split(".")[1],"r")
+                fp=open(file_final_path,"w")
+                fp.write(f.read())
+                f.close()
+                fp.close()
+
+
+        pass
+
+
     def pull(self):
         pass
 
-    def push(self):
-        pass
 
     def rollback(self):
         pass
