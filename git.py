@@ -1,4 +1,5 @@
 import datetime
+import difflib
 import hashlib
 import os
 import sys
@@ -189,6 +190,7 @@ class VCS:
         new_df["track_flag"] = track_flag
         df = new_df
         df.to_csv(self.repo_info)
+        return "Success"
 
     def log(self, cmd):
         insert_obj = {
@@ -318,8 +320,36 @@ class VCS:
 
         return "Success"
 
-    def diff(self):
-        pass
+    def diff(self, filename):
+        filename = os.path.join(self.RepoPath, filename)
+        if not os.path.exists(filename):
+            return "File not found!"
+
+        df = pd.read_csv(self.repo_info)
+        records = df.to_records(index=False)
+        is_tracked = False
+        file_sha = ""
+        for record in records:
+            if record.filename == filename and "T" in record.track_flag:
+                is_tracked = True
+                file_sha = record.sha
+
+        if not is_tracked:
+            return "File is not tracked!"
+
+        src = str(filename)
+        ext = "." + src.split(".")[-1]
+        des = os.path.join(self.repo_area, file_sha+ext)
+
+        with open(src) as ptr1:
+            src_in = ptr1.readlines()
+
+        with open(des) as ptr2:
+            des_in = ptr2.readlines()
+
+        # Find and print the diff:
+        res = difflib.unified_diff(src_in, des_in, fromfile=src, tofile=des, lineterm='')
+        return res
 
     def restore(self):
         pass

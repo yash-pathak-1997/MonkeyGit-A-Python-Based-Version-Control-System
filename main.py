@@ -4,6 +4,8 @@ import streamlit as st
 from Logs import log_obj
 from git import VCS
 from Config import conf_obj, UnTrackedNew, UnTrackedMod, UnTrackedDel, TrackedNew, TrackedMod, TrackedDel
+import difflib
+
 
 if __name__ == "__main__":
     vcs_obj = VCS(conf_obj["cwd"])
@@ -18,6 +20,8 @@ if __name__ == "__main__":
         st.write("Current Working Directory : " + conf_obj["cwd"])
         log_obj.log(cmd + " command", True)
         arg_list = cmd.split(" ")
+
+        st.caption("---------------------------------------------------------------------------------------")
 
         # run update before every command (if not init)
         if vcs_obj.is_init and arg_list[1] != "init":
@@ -45,8 +49,9 @@ if __name__ == "__main__":
             if vcs_obj.is_init:
                 if len(arg_list) > 2:
                     vcs_obj.log(arg_list[1])
-                if len(arg_list) > 2:
-                    vcs_obj.add(arg_list[2:])
+                    res = vcs_obj.add(arg_list[2:])
+                    if res == "Success":
+                        st.success("Files are added!")
                 else:
                     st.warning("Nothing specified, nothing added!")
             else:
@@ -109,9 +114,20 @@ if __name__ == "__main__":
             else:
                 st.error("Not a Git Repo!")
 
+        # git diff <filename>
         elif arg_list[1] == "diff":
+            if len(arg_list) != 3:
+                st.error("Please enter : git diff <filename>")
             if vcs_obj.is_init:
-                vcs_obj.diff()
+                filename = arg_list[2]
+                res = vcs_obj.diff(filename)
+                if type(res) == str:
+                    st.warning(res)
+                else:
+                    for msg in res:
+                        st.write(msg)
+
+                st.snow()
             else:
                 st.error("Not a Git Repo!")
 
