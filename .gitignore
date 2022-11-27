@@ -13,3 +13,4 @@ Logs/__pycache__/Log.cpython-310.pyc
 .DS_Store
 __pycache__/git.cpython-310.pyc
 /GitTest/
+/Config/self_conf.json
