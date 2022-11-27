@@ -15,7 +15,7 @@ from Config import conf_obj, self_obj, UnTrackedDel, UnTrackedMod, UnTrackedNew,
 
 class VCS:
     def __init__(self, cwd):
-        self.remote_static = self_obj["remote_static"]
+        self.remote_static = self_obj["remote_repo"]
         self.RepoPath = cwd  # initialize with the current working directory
         self.RepoName = ""
         for i in range(len(cwd) - 1, 0, -1):
@@ -23,6 +23,7 @@ class VCS:
                 self.RepoName = cwd[i] + self.RepoName
                 break
             self.RepoName = cwd[i] + self.RepoName
+        self.back_RepoPath = self.RepoPath.replace(self.RepoName, "")
         self.git = os.path.join(self.RepoPath, ".git-vcs")
         self.repo_info = os.path.join(self.git, "repo_info.csv")
         self.log_info = os.path.join(self.git, "log_info.csv")
@@ -40,7 +41,7 @@ class VCS:
         print(self.remote_area)
         print(self.remote_main)
 
-        self.pull_folder = self_obj["pull_folder"]
+        self.pull_folder = os.path.join(self.back_RepoPath, "pull_folder")
 
         self.files_list, self.sha_list, self.track_flag = list(), list(), list()
         if os.path.exists(self.git):
