@@ -32,7 +32,7 @@ class VCS:
         self.commit_head = os.path.join(self.git, "commit_head.txt")
         self.commit_info = os.path.join(self.git, "commit_info.json")
 
-        self.remote_dir_path = os.path.join(self.git, "Remotes")
+        self.remote_dir_path = os.path.join(self.remote_static, "Remotes")
         self.remote_area = self.remote_dir_path + self.RepoName + "-remote"
         self.remote_main = self.remote_area + self.RepoName + "-main"
         # print("----------------")
@@ -333,9 +333,14 @@ class VCS:
                 shutil.rmtree(pull_folder_search)
                 shutil.copytree(p,pull_folder_search)
             else:
+                print("...............file..........")
+                print(p)
+                print(pull_folder_search)
+                print("................done..........")
                 sfp=open(p,"r")
-                dfp=open(os.path.join(self.pull_folder,p),"w")
+                dfp=open(pull_folder_search,"w")
                 dfp.write(sfp.read())
+
         shutil.rmtree(self.RepoPath)
         os.rename(self.pull_folder, self.RepoPath)
 
