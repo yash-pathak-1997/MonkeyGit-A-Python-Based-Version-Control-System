@@ -328,17 +328,8 @@ class VCS:
                 sfp=open(p,"r")
                 dfp=open(os.path.join(self.pull_folder,p),"w")
                 dfp.write(sfp.read())
-        # dst = self.pull_folder
-        # src = self.remote_main
-        # if os.path.exists(dst):
-        #     shutil.rmtree(dst)
-        # os.mkdir(dst)
-        # shutil.copytree(src, dst, dirs_exist_ok=True)
         shutil.rmtree(self.RepoPath)
         os.rename(self.pull_folder, self.RepoPath)
-
-
-
 
     def rollback(self, arg_list):
         f_commit = open(self.commit_info, "r")
