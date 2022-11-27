@@ -10,12 +10,12 @@ import datetime
 import time
 from utils import filepath, create_df, update_repo_info, create_log_df, create_on_move
 import pandas as pd
-from Config import conf_obj, UnTrackedDel, UnTrackedMod, UnTrackedNew, TrackedDel, TrackedMod, TrackedNew
+from Config import conf_obj, self_obj, UnTrackedDel, UnTrackedMod, UnTrackedNew, TrackedDel, TrackedMod, TrackedNew
 
 
 class VCS:
     def __init__(self, cwd):
-        self.remote_static = "/home/krati/Documents"
+        self.remote_static = self_obj["remote_repo"]
         self.RepoPath = cwd  # initialize with the current working directory
         self.RepoName = ""
         for i in range(len(cwd) - 1, 0, -1):
@@ -23,6 +23,7 @@ class VCS:
                 self.RepoName = cwd[i] + self.RepoName
                 break
             self.RepoName = cwd[i] + self.RepoName
+        self.back_RepoPath = self.RepoPath.replace(self.RepoName, "")
         self.git = os.path.join(self.RepoPath, ".git-vcs")
         self.repo_info = os.path.join(self.git, "repo_info.csv")
         self.log_info = os.path.join(self.git, "log_info.csv")
@@ -35,23 +36,12 @@ class VCS:
         self.remote_dir_path = os.path.join(self.remote_static, "Remotes")
         self.remote_area = self.remote_dir_path + self.RepoName + "-remote"
         self.remote_main = self.remote_area + self.RepoName + "-main"
-        # print("----------------")
-        # print(cwd[cwd.rfind("/"):])
-        # print(cwd[cwd.rfind("/"):]+"_remote")
-        # var=cwd[cwd.rfind("/"):]+"_remote"
-
-        # print(os.path.join(self.remote_dir_path , var))
-        # self.remote_area=os.path.join(self.remote_dir_path,(cwd[cwd.rfind("/"):]+"_remote"))
-        # self.remote_main=os.path.join(self.remote_area,(cwd[cwd.rfind("/"):]+"_main"))
 
         print(self.remote_dir_path)
         print(self.remote_area)
         print(self.remote_main)
 
-        # -------------------------------------
-        org_dir = self.RepoPath[0:self.RepoPath.rfind('/')]
-        print(org_dir)
-        self.pull_folder = os.path.join(org_dir, "pull_folder")
+        self.pull_folder = os.path.join(self.back_RepoPath, "pull_folder")
 
         self.files_list, self.sha_list, self.track_flag = list(), list(), list()
         if os.path.exists(self.git):
@@ -65,7 +55,6 @@ class VCS:
             shutil.rmtree(self.git)
             flag = True
 
-        # ---------------------------------------
         if os.path.exists(self.pull_folder):
             shutil.rmtree(self.pull_folder)
         os.mkdir(self.pull_folder)
@@ -182,6 +171,7 @@ class VCS:
                             f.write(fread.read())
                             f.close()
                             fread.close()
+
         for filename in arg_list:
             file_list = df["filename"].to_list()
             sha_list = df["sha"].to_list()
@@ -242,9 +232,7 @@ class VCS:
         shutil.copy(self.repo_info, commit_version)
         f_commit_head = open(self.commit_head, "r")
         f_commit_info = open(self.commit_info, "r")
-        # print(f_commit_head.read())
         curr_head = f_commit_head.read()
-        # print(json.loads(f_commit_info.read()))
         commit_pair = json.loads(f_commit_info.read())
         commit_metadata = dict()
         commit_metadata["parent_commit"] = curr_head
@@ -253,10 +241,8 @@ class VCS:
             msg = " ".join(arg_list[3:])
             commit_metadata["commit_msg"] = msg
         commit_pair[commit_folder_name] = commit_metadata
-        # commit_pair = str(commit_pair).replace("'", "\"")
         print(commit_pair)
 
-        # commit_pair["\""+commit_folder_name+"\""] = "\""+curr_head+"\""
         curr_head = commit_folder_name
         f_commit_head.close()
         f_commit_info.close()
@@ -264,16 +250,6 @@ class VCS:
         f_commit_info = open(self.commit_info, "w")
         f_commit_head.write(curr_head)
         json.dump(commit_pair, f_commit_info)
-        # curr_head=f_commit_head.read()
-        # print("current head is -> "+curr_head)
-        # commit_pair=json.load(f_commit_info)
-        # print("commit pair is -> " + commit_pair)
-        # commit_pair[commit_folder_name]=curr_head
-        # curr_head=commit_folder_name
-        # f_commit_info.write(commit_pair)
-        # f_commit_head.close()
-        # f_commit_head=open(self.commit_head,"w")
-        # f_commit_head.write(curr_head)
 
     def push(self):
         f = open(self.commit_head, "r")
@@ -316,30 +292,25 @@ class VCS:
         if os.path.exists(remote_git_vcs):
             shutil.rmtree(remote_git_vcs)
         os.mkdir(remote_git_vcs)
-        shutil.copytree(self.git, remote_git_vcs,dirs_exist_ok=True)
+        shutil.copytree(self.git, remote_git_vcs, dirs_exist_ok=True)
 
     def pull(self):
-        shutil.copytree(self.RepoPath, self.pull_folder,dirs_exist_ok=True)
+        shutil.copytree(self.RepoPath, self.pull_folder, dirs_exist_ok=True)
         # path = self.remote_main
-        print(self.remote_main,self.pull_folder)
+        print(self.remote_main, self.pull_folder)
         relative = pathlib.Path(os.path.abspath(self.remote_main))
         for p in pathlib.Path(relative).iterdir():
-            print(".................")
-            path=str(p)[str(p).rfind(self.remote_main)+len(self.remote_main)+1:]
-            pull_folder_search=os.path.join(self.pull_folder,path)
-            print(pull_folder_search)
-            print(".................")
+            path = str(p)[str(p).rfind(self.remote_main) + len(self.remote_main) + 1:]
+            pull_folder_search = os.path.join(self.pull_folder, path)
             if p.is_dir():
                 shutil.rmtree(pull_folder_search)
-                shutil.copytree(p,pull_folder_search)
+                shutil.copytree(p, pull_folder_search)
             else:
-                print("...............file..........")
-                print(p)
-                print(pull_folder_search)
-                print("................done..........")
-                sfp=open(p,"r")
-                dfp=open(pull_folder_search,"w")
+                sfp = open(p, "r")
+                dfp = open(pull_folder_search, "w")
                 dfp.write(sfp.read())
+                sfp.close()
+                dfp.close()
 
         shutil.rmtree(self.RepoPath)
         os.rename(self.pull_folder, self.RepoPath)
@@ -399,7 +370,7 @@ class VCS:
 
         src = str(filename)
         ext = "." + src.split(".")[-1]
-        des = os.path.join(self.repo_area, file_sha+ext)
+        des = os.path.join(self.repo_area, file_sha + ext)
 
         with open(src) as ptr1:
             src_in = ptr1.readlines()
