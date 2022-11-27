@@ -1,6 +1,7 @@
 import datetime
 import hashlib
 import os
+import pathlib
 import sys
 import json
 import shutil
@@ -13,7 +14,7 @@ from Config import conf_obj, UnTrackedDel, UnTrackedMod, UnTrackedNew, TrackedDe
 
 class VCS:
     def __init__(self, cwd):
-
+        self.remote_static = "/home/krati/Documents"
         self.RepoPath = cwd  # initialize with the current working directory
         self.git = os.path.join(self.RepoPath, ".git-vcs")
         self.repo_info = os.path.join(self.git, "repo_info.csv")
@@ -29,7 +30,7 @@ class VCS:
         # print(cwd[cwd.rfind("/"):]+"_remote")
         # var=cwd[cwd.rfind("/"):]+"_remote"
 
-        self.remote_dir_path = os.path.join(self.git, "Remotes")
+        self.remote_dir_path = os.path.join(self.remote_static, "Remotes")
         self.remote_area = self.remote_dir_path + cwd[cwd.rfind("/"):] + "_remote"
         self.remote_main = self.remote_dir_path + cwd[cwd.rfind("/"):] + "_remote" + cwd[cwd.rfind("/"):] + "_main"
 
@@ -40,6 +41,11 @@ class VCS:
         print(self.remote_dir_path)
         print(self.remote_area)
         print(self.remote_main)
+
+        # -------------------------------------
+        org_dir = self.RepoPath[0:self.RepoPath.rfind('/')]
+        print(org_dir)
+        self.pull_folder = os.path.join(org_dir, "pull_folder")
 
         self.files_list, self.sha_list, self.track_flag = list(), list(), list()
         if os.path.exists(self.git):
@@ -53,9 +59,16 @@ class VCS:
             shutil.rmtree(self.git)
             flag = True
 
+        # ---------------------------------------
+        if os.path.exists(self.pull_folder):
+            shutil.rmtree(self.pull_folder)
+        os.mkdir(self.pull_folder)
+
         os.mkdir(self.git)
         os.mkdir(self.repo_area)
         os.mkdir(self.commit_area)
+        if os.path.exists(self.remote_dir_path):
+            shutil.rmtree(self.remote_dir_path)
         os.mkdir(self.remote_dir_path)
         os.mkdir(self.remote_area)
         os.mkdir(self.remote_main)
@@ -285,9 +298,41 @@ class VCS:
                 fp.write(f.read())
                 f.close()
                 fp.close()
+        remote_git_vcs = os.path.join(self.remote_main, ".git-vcs")
+        if os.path.exists(remote_git_vcs):
+            shutil.rmtree(remote_git_vcs)
+        os.mkdir(remote_git_vcs)
+        shutil.copytree(self.git, remote_git_vcs,dirs_exist_ok=True)
 
     def pull(self):
-        pass
+        shutil.copytree(self.RepoPath, self.pull_folder,dirs_exist_ok=True)
+        # path = self.remote_main
+        print(self.remote_main,self.pull_folder)
+        relative = pathlib.Path(os.path.abspath(self.remote_main))
+        for p in pathlib.Path(relative).iterdir():
+            print(".................")
+            path=str(p)[str(p).rfind(self.remote_main)+len(self.remote_main)+1:]
+            pull_folder_search=os.path.join(self.pull_folder,path)
+            print(pull_folder_search)
+            print(".................")
+            if p.is_dir():
+                shutil.rmtree(pull_folder_search)
+                shutil.copytree(p,pull_folder_search)
+            else:
+                sfp=open(p,"r")
+                dfp=open(os.path.join(self.pull_folder,p),"w")
+                dfp.write(sfp.read())
+        # dst = self.pull_folder
+        # src = self.remote_main
+        # if os.path.exists(dst):
+        #     shutil.rmtree(dst)
+        # os.mkdir(dst)
+        # shutil.copytree(src, dst, dirs_exist_ok=True)
+        shutil.rmtree(self.RepoPath)
+        os.rename(self.pull_folder, self.RepoPath)
+
+
+
 
     def rollback(self, arg_list):
         f_commit = open(self.commit_info, "r")
