@@ -6,7 +6,7 @@ import json
 import shutil
 import datetime
 import time
-from utils import filepath, create_df, update_repo_info, create_log_df
+from utils import filepath, create_df, update_repo_info, create_log_df, create_on_move
 import pandas as pd
 from Config import conf_obj, UnTrackedDel, UnTrackedMod, UnTrackedNew, TrackedDel, TrackedMod, TrackedNew
 
@@ -24,24 +24,22 @@ class VCS:
         self.commit_head = os.path.join(self.git, "commit_head.txt")
         self.commit_info = os.path.join(self.git, "commit_info.json")
 
-
-        #print("----------------")
-        #print(cwd[cwd.rfind("/"):])
-        #print(cwd[cwd.rfind("/"):]+"_remote")
-        #var=cwd[cwd.rfind("/"):]+"_remote"
+        # print("----------------")
+        # print(cwd[cwd.rfind("/"):])
+        # print(cwd[cwd.rfind("/"):]+"_remote")
+        # var=cwd[cwd.rfind("/"):]+"_remote"
 
         self.remote_dir_path = os.path.join(self.git, "Remotes")
-        self.remote_area=self.remote_dir_path+cwd[cwd.rfind("/"):] + "_remote"
-        self.remote_main = self.remote_dir_path+ cwd[cwd.rfind("/"):] + "_remote"+cwd[cwd.rfind("/"):] +"_main"
+        self.remote_area = self.remote_dir_path + cwd[cwd.rfind("/"):] + "_remote"
+        self.remote_main = self.remote_dir_path + cwd[cwd.rfind("/"):] + "_remote" + cwd[cwd.rfind("/"):] + "_main"
 
-        #print(os.path.join(self.remote_dir_path , var))
-        #self.remote_area=os.path.join(self.remote_dir_path,(cwd[cwd.rfind("/"):]+"_remote"))
-        #self.remote_main=os.path.join(self.remote_area,(cwd[cwd.rfind("/"):]+"_main"))
+        # print(os.path.join(self.remote_dir_path , var))
+        # self.remote_area=os.path.join(self.remote_dir_path,(cwd[cwd.rfind("/"):]+"_remote"))
+        # self.remote_main=os.path.join(self.remote_area,(cwd[cwd.rfind("/"):]+"_main"))
 
         print(self.remote_dir_path)
         print(self.remote_area)
         print(self.remote_main)
-
 
         self.files_list = list()
         self.sha_list = list()
@@ -118,7 +116,6 @@ class VCS:
     def add(self, arg_list):
         df = pd.read_csv(self.repo_info)
         cwd = conf_obj["cwd"]
-        # print(".....................",cwd)
         if arg_list[0] == '.':
             for ind in df.index:
                 flag = 0
@@ -223,17 +220,17 @@ class VCS:
         commit_version = os.path.join(self.commit_area, commit_folder_name)
         os.mkdir(commit_version)
         shutil.copy(self.repo_info, commit_version)
-        f_commit_head=open(self.commit_head,"r")
+        f_commit_head = open(self.commit_head, "r")
         f_commit_info = open(self.commit_info, "r")
         # print(f_commit_head.read())
-        curr_head=f_commit_head.read()
+        curr_head = f_commit_head.read()
         # print(json.loads(f_commit_info.read()))
         commit_pair = json.loads(f_commit_info.read())
-        commit_pair[ commit_folder_name ] = curr_head
-        commit_pair=str(commit_pair).replace("'","\"")
+        commit_pair[commit_folder_name] = curr_head
+        commit_pair = str(commit_pair).replace("'", "\"")
         print(commit_pair)
 
-        #commit_pair["\""+commit_folder_name+"\""] = "\""+curr_head+"\""
+        # commit_pair["\""+commit_folder_name+"\""] = "\""+curr_head+"\""
         curr_head = commit_folder_name
         f_commit_head.close()
         f_commit_info.close()
@@ -253,53 +250,45 @@ class VCS:
         # f_commit_head.write(curr_head)
 
     def push(self):
-        f=open(self.commit_head,"r")
-        curr_commit=f.read()
+        f = open(self.commit_head, "r")
+        curr_commit = f.read()
         f.close()
-        df=pd.read_csv(os.path.join(self.commit_area,curr_commit)+"/repo_info.csv")
+        df = pd.read_csv(os.path.join(self.commit_area, curr_commit) + "/repo_info.csv")
         print(df)
         for i in df.index:
-            if df['track_flag'][i] in [TrackedNew,TrackedMod,TrackedDel]:
-                path=df['filename'][i]
-                sha=df['sha'][i]
-                len1=len(self.RepoPath)
-                file_path=path[path.find(self.RepoPath)+len1+1:]
+            if df['track_flag'][i] in [TrackedNew, TrackedMod, TrackedDel]:
+                path = df['filename'][i]
+                sha = df['sha'][i]
+                len1 = len(self.RepoPath)
+                file_path = path[path.find(self.RepoPath) + len1 + 1:]
                 print(file_path)
-                create_dir_path=self.remote_main
-                while file_path.find("/")!=-1:
-                    ind=file_path.find("/")
-                    if ind==0:
-                        fold = file_path[0:ind+1]
-                        file_path = file_path[ind+1:]
+                create_dir_path = self.remote_main
+                while file_path.find("/") != -1:
+                    ind = file_path.find("/")
+                    if ind == 0:
+                        fold = file_path[0:ind + 1]
+                        file_path = file_path[ind + 1:]
                     else:
                         fold = file_path[0:ind]
                         file_path = file_path[ind:]
-                    if(fold=="/"):
+                    if fold == "/":
                         continue
-                    print("folder->"+fold)
-                    create_dir_path=os.path.join(create_dir_path,fold)
-                    if os.path.exists(create_dir_path) == False:
+                    print("folder->" + fold)
+                    create_dir_path = os.path.join(create_dir_path, fold)
+                    if not os.path.exists(create_dir_path):
                         os.mkdir(create_dir_path)
 
-
-                    #print(file_path)
-                    #break
-                print("file->"+file_path)
-                file_final_path=os.path.join(create_dir_path,file_path)
-                source_path=os.path.join(self.repo_area,sha)
-                f=open(source_path+"."+file_path.split(".")[1],"r")
-                fp=open(file_final_path,"w")
+                print("file->" + file_path)
+                file_final_path = os.path.join(create_dir_path, file_path)
+                source_path = os.path.join(self.repo_area, sha)
+                f = open(source_path + "." + file_path.split(".")[1], "r")
+                fp = open(file_final_path, "w")
                 fp.write(f.read())
                 f.close()
                 fp.close()
 
-
-        pass
-
-
     def pull(self):
         pass
-
 
     def rollback(self, arg_list):
         f_commit = open(self.commit_info, "r")
@@ -312,8 +301,8 @@ class VCS:
             curr_commit = f_cc.read()
             while steps > 0:
                 curr_commit = commit_dict[curr_commit]
-                steps = steps-1
-            
+                steps = steps - 1
+
             if curr_commit is not None and curr_commit != "":
                 repo_info_new = os.path.join(self.commit_area, curr_commit + "/repo_info.csv")
                 df = pd.read_csv(repo_info_new)
@@ -333,7 +322,7 @@ class VCS:
 
         f_commit.close()
         f_cc.close()
-        f_cc = open(self.commit_head, "r")
+        f_cc = open(self.commit_head, "w")
         f_cc.write(curr_commit)
         f_cc.close()
 
