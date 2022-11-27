@@ -3,7 +3,6 @@ import os
 import pathlib
 import hashlib
 import shutil
-
 import pandas as pd
 from Config import UnTrackedDel, UnTrackedMod, UnTrackedNew, TrackedDel, TrackedMod, TrackedNew
 
@@ -59,7 +58,7 @@ def update_repo_info(csv_path, repo_path, file_list, sha_list, track_flag):
     filepath(repo_path, new_file_list, new_sha_list, new_track_flag)
 
     # check add new file
-    ind=0
+    ind = 0
     for i in new_file_list:
 
         if i not in file_list:
@@ -67,7 +66,7 @@ def update_repo_info(csv_path, repo_path, file_list, sha_list, track_flag):
             sha_list.append(hash_calc(i))
             track_flag.append(UnTrackedNew)
 
-        ind=ind+1
+        ind = ind + 1
 
     # check delete file
     del_list = list()
@@ -80,12 +79,12 @@ def update_repo_info(csv_path, repo_path, file_list, sha_list, track_flag):
                 file_list.append(file_list[i])
                 sha_list.append(None)
                 track_flag.append(UnTrackedDel)
-    f=0
+    f = 0
     for i in del_list:
-        del file_list[i-f]
-        del sha_list[i-f]
-        del track_flag[i-f]
-        f=f+1
+        del file_list[i - f]
+        del sha_list[i - f]
+        del track_flag[i - f]
+        f = f + 1
 
     # check modify file
     for i in range(0, len(file_list)):
@@ -96,10 +95,10 @@ def update_repo_info(csv_path, repo_path, file_list, sha_list, track_flag):
                     if track_flag[i] in [UnTrackedNew, UnTrackedMod, UnTrackedDel]:
                         sha_list[i] = hash_calc(file_list[i])
                         print("..........................")
-                        print(file_list[i],track_flag[i])
+                        print(file_list[i], track_flag[i])
                         print("..........................")
                     if track_flag[i] in [UnTrackedDel]:
-                        track_flag[i]=UnTrackedNew
+                        track_flag[i] = UnTrackedNew
 
                     elif track_flag[i] in [TrackedNew, TrackedMod, TrackedDel]:
                         if i != len(file_list) and file_list[i] not in file_list[i + 1:]:
@@ -119,10 +118,10 @@ def create_on_move(df, repo_path, repo_area):
 
     # clear working directory except .git-vcs
     for root, dirs, files in os.walk(repo_path):
-        for f in files:
-            os.unlink(os.path.join(root, f))
-        for d in dirs:
-            if "git-vcs" not in d:
+        if ".git-vcs" not in root:
+            for f in files:
+                os.unlink(os.path.join(root, f))
+            for d in dirs:
                 shutil.rmtree(os.path.join(root, d))
 
     # delete all files which are not tracked from repo_info
@@ -131,13 +130,16 @@ def create_on_move(df, repo_path, repo_area):
         if "T" not in records[i].track_flag:
             del_list.append(i)
 
+    cntr = 0
     for i in del_list:
-        del records[i]
+        del records[i - cntr]
+        cntr += 1
 
     # create all files and folders in working directory
     for record in records:
-        source = os.path.join(repo_area, record.sha)
-        des = record.filename
+        des = str(record.filename)
+        ext = "." + des.split(".")[-1]
+        source = str(os.path.join(repo_area, record.sha)) + ext
 
         des_path = str(record.filename).replace(("\\" + str(record.filename).split("\\")[-1]), "")
         is_exist = os.path.exists(des_path)
