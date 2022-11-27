@@ -97,7 +97,7 @@ if __name__ == "__main__":
         # git commit <options> <params>
         elif arg_list[1] == "commit":
             if vcs_obj.is_init:
-                vcs_obj.commit()
+                vcs_obj.commit(arg_list)
             else:
                 st.error("Not a Git Repo!")
 

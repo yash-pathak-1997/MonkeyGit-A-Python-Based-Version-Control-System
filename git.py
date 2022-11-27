@@ -223,7 +223,7 @@ class VCS:
         df["ID"] = df.index
         df.to_csv(self.log_info, index=False)
 
-    def commit(self):
+    def commit(self, arg_list):
         time_stamp = str(time.time())
         t_encrypt = time_stamp.encode("utf-8")
         hash_obj = hashlib.sha256()
@@ -238,8 +238,14 @@ class VCS:
         curr_head = f_commit_head.read()
         # print(json.loads(f_commit_info.read()))
         commit_pair = json.loads(f_commit_info.read())
-        commit_pair[commit_folder_name] = curr_head
-        commit_pair = str(commit_pair).replace("'", "\"")
+        commit_metadata = dict()
+        commit_metadata["parent_commit"] = curr_head
+        commit_metadata["timestamp"] = str(datetime.datetime.now())
+        if len(arg_list) > 2:
+            msg = " ".join(arg_list[3:])
+            commit_metadata["commit_msg"] = msg
+        commit_pair[commit_folder_name] = commit_metadata
+        # commit_pair = str(commit_pair).replace("'", "\"")
         print(commit_pair)
 
         # commit_pair["\""+commit_folder_name+"\""] = "\""+curr_head+"\""
@@ -249,7 +255,7 @@ class VCS:
         f_commit_head = open(self.commit_head, "w")
         f_commit_info = open(self.commit_info, "w")
         f_commit_head.write(curr_head)
-        f_commit_info.write(str(commit_pair))
+        json.dump(commit_pair, f_commit_info)
         # curr_head=f_commit_head.read()
         # print("current head is -> "+curr_head)
         # commit_pair=json.load(f_commit_info)
@@ -339,16 +345,14 @@ class VCS:
         f_cc = open(self.commit_head, "r")
         commit_dict = json.load(f_commit)
         if arg_list[0] == "-s":
-            steps = arg_list[1]
-            if steps <= 0:
-                return "Invalid steps"
+            steps = int(arg_list[1])
             curr_commit = f_cc.read()
             while steps > 0:
-                curr_commit = commit_dict[curr_commit]
+                curr_commit = commit_dict[curr_commit]["parent_commit"]
                 steps = steps - 1
 
             if curr_commit is not None and curr_commit != "":
-                repo_info_new = os.path.join(self.commit_area, curr_commit + "/repo_info.csv")
+                repo_info_new = os.path.join(self.commit_area, curr_commit, "repo_info.csv")
                 df = pd.read_csv(repo_info_new)
                 df = create_on_move(df, self.RepoPath, self.repo_area)
                 df.to_csv(self.repo_info, index=False)
@@ -357,7 +361,7 @@ class VCS:
         else:
             curr_commit = arg_list[1]
             if curr_commit in commit_dict:
-                repo_info_new = os.path.join(self.commit_area, curr_commit + "/repo_info.csv")
+                repo_info_new = os.path.join(self.commit_area, curr_commit, "repo_info.csv")
                 df = pd.read_csv(repo_info_new)
                 df = create_on_move(df, self.RepoPath, self.repo_area)
                 df.to_csv(self.repo_info, index=False)
