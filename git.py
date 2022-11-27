@@ -13,8 +13,13 @@ from Config import conf_obj, UnTrackedDel, UnTrackedMod, UnTrackedNew, TrackedDe
 
 class VCS:
     def __init__(self, cwd):
-
         self.RepoPath = cwd  # initialize with the current working directory
+        self.RepoName = ""
+        for i in range(len(cwd) - 1, 0, -1):
+            if cwd[i] == "/" or cwd[i] == "\\":
+                self.RepoName = cwd[i] + self.RepoName
+                break
+            self.RepoName = cwd[i] + self.RepoName
         self.git = os.path.join(self.RepoPath, ".git-vcs")
         self.repo_info = os.path.join(self.git, "repo_info.csv")
         self.log_info = os.path.join(self.git, "log_info.csv")
@@ -24,22 +29,9 @@ class VCS:
         self.commit_head = os.path.join(self.git, "commit_head.txt")
         self.commit_info = os.path.join(self.git, "commit_info.json")
 
-        # print("----------------")
-        # print(cwd[cwd.rfind("/"):])
-        # print(cwd[cwd.rfind("/"):]+"_remote")
-        # var=cwd[cwd.rfind("/"):]+"_remote"
-
         self.remote_dir_path = os.path.join(self.git, "Remotes")
-        self.remote_area = self.remote_dir_path + cwd[cwd.rfind("/"):] + "_remote"
-        self.remote_main = self.remote_dir_path + cwd[cwd.rfind("/"):] + "_remote" + cwd[cwd.rfind("/"):] + "_main"
-
-        # print(os.path.join(self.remote_dir_path , var))
-        # self.remote_area=os.path.join(self.remote_dir_path,(cwd[cwd.rfind("/"):]+"_remote"))
-        # self.remote_main=os.path.join(self.remote_area,(cwd[cwd.rfind("/"):]+"_main"))
-
-        print(self.remote_dir_path)
-        print(self.remote_area)
-        print(self.remote_main)
+        self.remote_area = self.remote_dir_path + self.RepoName + "-remote"
+        self.remote_main = self.remote_area + self.RepoName + "-main"
 
         self.files_list, self.sha_list, self.track_flag = list(), list(), list()
         if os.path.exists(self.git):
@@ -142,6 +134,7 @@ class VCS:
                 flag = 0
                 for ind in df.index:
                     print(os.path.join(cwd, filename))
+                    print(df['filename'][ind])
                     if df['filename'][ind] in os.path.join(cwd, filename):
                         print("file found")
                         if df['track_flag'][ind] == UnTrackedNew:
@@ -157,8 +150,7 @@ class VCS:
                         if flag == 1:
                             f = open(
                                 os.path.join(self.repo_area,
-                                             df["sha"][ind] + '.' + str(df["filename"][ind]).split(".")[1]),
-                                "w")
+                                             df["sha"][ind] + '.' + str(df["filename"][ind]).split(".")[1]), "w")
                             fread = open(df["filename"][ind], "r")
                             f.write(fread.read())
                             f.close()
@@ -172,9 +164,10 @@ class VCS:
             del_list = []
             for i in range(0, len(file_list)):
                 print("file index ", i)
-                print(os.path.join(cwd, filename).replace("./", ''), " ", file_list[i])
-                if os.path.join(cwd, filename).replace("./", '') == file_list[i] and track_flag[i] in [TrackedNew,
-                                                                                                       TrackedMod]:
+                print(os.path.join(cwd, filename), " ", file_list[i])
+                if os.path.join(cwd, filename).replace("./", '') == file_list[i] and track_flag[
+                    i] in [TrackedNew,
+                           TrackedMod]:
                     prevf = file_list[i]
                     prevs = sha_list[i]
                     prevt = track_flag[i]
@@ -294,16 +287,14 @@ class VCS:
         f_cc = open(self.commit_head, "r")
         commit_dict = json.load(f_commit)
         if arg_list[0] == "-s":
-            steps = arg_list[1]
-            if steps <= 0:
-                return "Invalid steps"
+            steps = int(arg_list[1])
             curr_commit = f_cc.read()
             while steps > 0:
                 curr_commit = commit_dict[curr_commit]
                 steps = steps - 1
 
             if curr_commit is not None and curr_commit != "":
-                repo_info_new = os.path.join(self.commit_area, curr_commit + "/repo_info.csv")
+                repo_info_new = os.path.join(self.commit_area, curr_commit, "repo_info.csv")
                 df = pd.read_csv(repo_info_new)
                 df = create_on_move(df, self.RepoPath, self.repo_area)
                 df.to_csv(self.repo_info, index=False)
@@ -312,7 +303,7 @@ class VCS:
         else:
             curr_commit = arg_list[1]
             if curr_commit in commit_dict:
-                repo_info_new = os.path.join(self.commit_area, curr_commit + "/repo_info.csv")
+                repo_info_new = os.path.join(self.commit_area, curr_commit, "repo_info.csv")
                 df = pd.read_csv(repo_info_new)
                 df = create_on_move(df, self.RepoPath, self.repo_area)
                 df.to_csv(self.repo_info, index=False)

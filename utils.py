@@ -4,6 +4,7 @@ import pathlib
 import hashlib
 import shutil
 import pandas as pd
+import numpy as np
 from Config import UnTrackedDel, UnTrackedMod, UnTrackedNew, TrackedDel, TrackedMod, TrackedNew
 
 
@@ -118,11 +119,13 @@ def create_on_move(df, repo_path, repo_area):
 
     # clear working directory except .git-vcs
     for root, dirs, files in os.walk(repo_path):
-        if ".git-vcs" not in root:
+        print(root, dirs, files)
+        if "git-vcs" not in root:
             for f in files:
                 os.unlink(os.path.join(root, f))
             for d in dirs:
-                shutil.rmtree(os.path.join(root, d))
+                if "git-vcs" not in d:
+                    shutil.rmtree(os.path.join(root, d))
 
     # delete all files which are not tracked from repo_info
     del_list = list()
@@ -132,7 +135,7 @@ def create_on_move(df, repo_path, repo_area):
 
     cntr = 0
     for i in del_list:
-        del records[i - cntr]
+        records = np.delete(records, i-cntr)
         cntr += 1
 
     # create all files and folders in working directory
