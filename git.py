@@ -15,10 +15,7 @@ from Config import conf_obj, UnTrackedDel, UnTrackedMod, UnTrackedNew, TrackedDe
 
 class VCS:
     def __init__(self, cwd):
-<<<<<<< HEAD
-=======
         self.remote_static = "/home/krati/Documents"
->>>>>>> origin/master
         self.RepoPath = cwd  # initialize with the current working directory
         self.RepoName = ""
         for i in range(len(cwd) - 1, 0, -1):
@@ -35,19 +32,13 @@ class VCS:
         self.commit_head = os.path.join(self.git, "commit_head.txt")
         self.commit_info = os.path.join(self.git, "commit_info.json")
 
-<<<<<<< HEAD
         self.remote_dir_path = os.path.join(self.git, "Remotes")
         self.remote_area = self.remote_dir_path + self.RepoName + "-remote"
         self.remote_main = self.remote_area + self.RepoName + "-main"
-=======
         # print("----------------")
         # print(cwd[cwd.rfind("/"):])
         # print(cwd[cwd.rfind("/"):]+"_remote")
         # var=cwd[cwd.rfind("/"):]+"_remote"
-
-        self.remote_dir_path = os.path.join(self.remote_static, "Remotes")
-        self.remote_area = self.remote_dir_path + cwd[cwd.rfind("/"):] + "_remote"
-        self.remote_main = self.remote_dir_path + cwd[cwd.rfind("/"):] + "_remote" + cwd[cwd.rfind("/"):] + "_main"
 
         # print(os.path.join(self.remote_dir_path , var))
         # self.remote_area=os.path.join(self.remote_dir_path,(cwd[cwd.rfind("/"):]+"_remote"))
@@ -56,7 +47,6 @@ class VCS:
         print(self.remote_dir_path)
         print(self.remote_area)
         print(self.remote_main)
->>>>>>> origin/master
 
         # -------------------------------------
         org_dir = self.RepoPath[0:self.RepoPath.rfind('/')]
