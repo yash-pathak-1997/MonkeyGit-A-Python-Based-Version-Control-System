@@ -416,5 +416,38 @@ class VCS:
         res = difflib.unified_diff(src_in, des_in, fromfile=src, tofile=des, lineterm='')
         return res
 
-    def restore(self):
-        pass
+    def rm(self, arg_list):
+        df = pd.read_csv(self.repo_info)
+        del_list = []
+        if arg_list[0] == ".":
+            for i in df.index:
+                if df["track_flag"][i] in [TrackedNew, TrackedMod]:
+                    for j in df.index:
+                        if i != j and df["filename"][i] == df["filename"][j]:
+                            del_list.append(i)
+                            if df["track_flag"][j] == UnTrackedMod:
+                                df.at[j, "track_flag"] = UnTrackedNew
+                            break
+                    df.at[i, "track_flag"] = UnTrackedNew
+                elif df["track_flag"][i] == TrackedDel:
+                    del_list.append(i)
+
+        else:
+            cwd = conf_obj["cwd"]
+            for i in df.index:
+                for filename in arg_list:
+                    if df["filename"][i] == os.path.join(cwd, filename):
+                        if df["track_flag"][i] in [TrackedNew, TrackedMod]:
+                            for j in df.index:
+                                if i != j and df["filename"][i] == df["filename"][j]:
+                                    del_list.append(i)
+                                    if df["track_flag"][j] == UnTrackedMod:
+                                        df.at[j, "track_flag"] = UnTrackedNew
+                                    break
+                            df.at[i, "track_flag"] = UnTrackedNew
+                        elif df["track_flag"][i] == TrackedDel:
+                            del_list.append(i)
+
+        df = df.drop(del_list)
+        df = df.iloc[:, 1:]
+        df.to_csv(self.repo_info)

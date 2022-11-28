@@ -130,6 +130,7 @@ if __name__ == "__main__":
             else:
                 st.error("Not a Git Repo!")
 
+        # git push
         elif arg_list[1] == "push":
             vcs_obj.log(arg_list[1])
             if vcs_obj.is_init:
@@ -137,9 +138,21 @@ if __name__ == "__main__":
             else:
                 st.error("Not a Git Repo!")
 
+        # git pull
         elif arg_list[1] == "pull":
             vcs_obj.log(arg_list[1])
             if vcs_obj.is_init:
                 vcs_obj.pull()
             else:
                 st.error("Not a Git Repo!")
+
+        # git rm <.> / <file_name>
+        elif arg_list[1] == "rm":
+            if vcs_obj.is_init:
+                if len(arg_list) > 2:
+                    vcs_obj.log(arg_list[1])
+                    vcs_obj.rm(arg_list[2:])
+                else:
+                    st.warning("Invalid command")
+            else:
+                st.error("Not a Git Repo!!")
