@@ -175,6 +175,18 @@ class VCS:
                                     shutil.copy(df["filename"][ind], os.path.join(self.repo_area, df["sha"][ind] + '.' +
                                                                                   str(df["filename"][ind]).split(".")[1]))
 
+        # -----------------------------
+        if str(arg_list[0]) == ".":
+            for root, dirs, files in os.walk(self.RepoPath):
+                if "git-vcs" not in root:
+                    for f in files:
+                        arg_list.append(os.path.join(root, f).replace(self.RepoPath, "")[1:])
+            del arg_list[0]
+            print("-----------")
+            print(arg_list)
+            print("-----------")
+        # -----------------------------
+
         for filename in arg_list:
             file_list = df["filename"].to_list()
             sha_list = df["sha"].to_list()
@@ -192,7 +204,9 @@ class VCS:
                     prevs = sha_list[i]
                     prevt = track_flag[i]
                     del_list.append(i)
+            print("^^^^^^^^^^^^")
             print(del_list, prevf, prevs, prevt)
+            print("^^^^^^^^^^^^^")
             f = 0
             for i in del_list:
                 del file_list[i - f]
