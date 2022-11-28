@@ -77,7 +77,7 @@ def update_repo_info(csv_path, repo_path, file_list, sha_list, track_flag):
             if track_flag[i] in [UnTrackedNew, UnTrackedMod, UnTrackedDel]:
                 del_list.append(i)
 
-            elif track_flag[i] in [TrackedNew, TrackedMod, TrackedDel]:
+            elif track_flag[i] in [TrackedNew, TrackedMod]:
                 file_list.append(file_list[i])
                 sha_list.append(None)
                 track_flag.append(UnTrackedDel)
@@ -141,20 +141,22 @@ def create_on_move(df, repo_path, repo_area):
 
     # create all files and folders in working directory
     for record in records:
-        des = str(record.filename)
-        ext = "." + des.split(".")[-1]
-        source = str(os.path.join(repo_area, record.sha)) + ext
+        if type(record.sha) != float:
+            des = str(record.filename)
+            print(des)
+            ext = "." + des.split(".")[-1]
+            source = str(os.path.join(repo_area, record.sha)) + ext
 
-        if "\\" in record.filename:
-            des_path = str(record.filename).replace(("\\" + str(record.filename).split("\\")[-1]), "")
-        else:
-            des_path = str(record.filename).replace(("/" + str(record.filename).split("/")[-1]), "")
-        is_exist = os.path.exists(des_path)
-        if not is_exist:
-            os.makedirs(des_path)
+            if "\\" in record.filename:
+                des_path = str(record.filename).replace(("\\" + str(record.filename).split("\\")[-1]), "")
+            else:
+                des_path = str(record.filename).replace(("/" + str(record.filename).split("/")[-1]), "")
+            is_exist = os.path.exists(des_path)
+            if not is_exist:
+                os.makedirs(des_path)
 
-        shutil.copyfile(source, des)
-        record.track_flag = "T0"
+            shutil.copyfile(source, des)
+            record.track_flag = "T0"
 
     # revert and write back
     final_df = pd.DataFrame(records).iloc[:, 1:]

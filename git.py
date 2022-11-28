@@ -1,6 +1,7 @@
 import datetime
 import difflib
 import hashlib
+import math
 import os
 import pathlib
 import sys
@@ -146,8 +147,9 @@ class VCS:
                     # f.close()
                     # fread.close()
                     if df.at[ind, 'track_flag'] != TrackedDel:
-                        shutil.copy(df["filename"][ind], os.path.join(self.repo_area, df["sha"][ind] + '.' +
-                                                                      str(df["filename"][ind]).split(".")[1]))
+                        if type(df["sha"][ind]) != float:
+                            shutil.copy(df["filename"][ind], os.path.join(self.repo_area, df["sha"][ind] + '.' +
+                                                                          str(df["filename"][ind]).split(".")[1]))
         else:
             print(arg_list)
             for filename in arg_list:
@@ -168,13 +170,10 @@ class VCS:
                             df.at[ind, 'track_flag'] = TrackedDel
                             flag = 1
                         if flag == 1:
-                            f = open(
-                                os.path.join(self.repo_area,
-                                             df["sha"][ind] + '.' + str(df["filename"][ind]).split(".")[1]), "w")
-                            fread = open(df["filename"][ind], "r")
-                            f.write(fread.read())
-                            f.close()
-                            fread.close()
+                            if df.at[ind, 'track_flag'] != TrackedDel:
+                                if type(df["sha"][ind]) != float:
+                                    shutil.copy(df["filename"][ind], os.path.join(self.repo_area, df["sha"][ind] + '.' +
+                                                                                  str(df["filename"][ind]).split(".")[1]))
 
         for filename in arg_list:
             file_list = df["filename"].to_list()
@@ -188,7 +187,7 @@ class VCS:
                 print(os.path.join(cwd, filename), " ", file_list[i])
                 if os.path.join(cwd, filename).replace("./", '') == file_list[i] and track_flag[
                     i] in [TrackedNew,
-                           TrackedMod]:
+                           TrackedMod, TrackedDel]:
                     prevf = file_list[i]
                     prevs = sha_list[i]
                     prevt = track_flag[i]
@@ -310,12 +309,10 @@ class VCS:
                         os.mkdir(create_dir_path)
 
                 file_final_path = os.path.join(create_dir_path, file_path)
-                source_path = os.path.join(self.repo_area, sha)
-                f = open(source_path + "." + file_path.split(".")[1], "r")
-                fp = open(file_final_path, "w")
-                fp.write(f.read())
-                f.close()
-                fp.close()
+                if type(sha) != float:
+                    source_path = os.path.join(self.repo_area, sha)
+                    shutil.copy(source_path + "." + file_path.split(".")[1], file_final_path)
+
         remote_git_vcs = os.path.join(self.remote_main, ".git-vcs")
         if os.path.exists(remote_git_vcs):
             shutil.rmtree(remote_git_vcs)
@@ -333,11 +330,7 @@ class VCS:
                 shutil.rmtree(pull_folder_search)
                 shutil.copytree(p, pull_folder_search)
             else:
-                sfp = open(p, "r")
-                dfp = open(pull_folder_search, "w")
-                dfp.write(sfp.read())
-                sfp.close()
-                dfp.close()
+                shutil.copy(p, pull_folder_search)
 
         shutil.rmtree(self.RepoPath)
         os.rename(self.pull_folder, self.RepoPath)
