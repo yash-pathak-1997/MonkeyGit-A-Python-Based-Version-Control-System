@@ -78,7 +78,7 @@ class VCS:
         df.to_csv(self.repo_info, index=False)
 
         # create log_info.csv
-        df_log = create_log_df(["init"], [datetime.datetime.now()], ["NA"])
+        df_log = create_log_df(["init"], [datetime.datetime.now()], ["NA"], ["NA"])
         df_log.to_csv(self.log_info, index=False)
 
         if flag:
@@ -109,6 +109,7 @@ class VCS:
     def update_repo(self):
         update_repo_info(self.repo_info, self.RepoPath, self.files_list, self.sha_list, self.track_flag)
         df = create_df(self.files_list, self.sha_list, self.track_flag)
+        df.drop_duplicates(subset=["filename", "track_flag"], inplace=True)
         df.to_csv(self.repo_info)
 
     def print(self):
@@ -136,14 +137,17 @@ class VCS:
                     df.at[ind, 'track_flag'] = TrackedDel
                     flag = 1
                 if flag == 1:
-                    f = open(
-                        os.path.join(self.repo_area, df["sha"][ind] + '.' + str(df["filename"][ind]).split(".")[1]),
-                        "w")
-                    fread = open(df["filename"][ind], "r")
-                    f.write(fread.read())
-
-                    f.close()
-                    fread.close()
+                    # f = open(
+                    #     os.path.join(self.repo_area, df["sha"][ind] + '.' + str(df["filename"][ind]).split(".")[1]),
+                    #     "w")
+                    # fread = open(df["filename"][ind], "r")
+                    # f.write(fread.read())
+                    #
+                    # f.close()
+                    # fread.close()
+                    if df.at[ind, 'track_flag'] != TrackedDel:
+                        shutil.copy(df["filename"][ind], os.path.join(self.repo_area, df["sha"][ind] + '.' +
+                                                                      str(df["filename"][ind]).split(".")[1]))
         else:
             print(arg_list)
             for filename in arg_list:
@@ -196,24 +200,45 @@ class VCS:
                 del sha_list[i - f]
                 del track_flag[i - f]
                 f = f + 1
-            file_list.append(prevf)
-            sha_list.append(prevs)
-            track_flag.append(prevt)
+            if prevf != "":
+                file_list.append(prevf)
+                sha_list.append(prevs)
+                track_flag.append(prevt)
 
         new_df = pd.DataFrame()
         new_df["filename"] = file_list
         new_df["sha"] = sha_list
         new_df["track_flag"] = track_flag
         df = new_df
+        df.drop_duplicates(subset=["filename", "track_flag"], inplace=True)
         df.to_csv(self.repo_info)
         return "Success"
 
-    def log(self, cmd):
-        insert_obj = {
-            "Command": cmd,
-            "Timestamp": datetime.datetime.now(),
-            "CommitId": "NA"
-        }
+    def log(self, cmd, is_commit=False, commit_id=""):
+        if is_commit:
+            if len(cmd) == 2:
+                insert_obj = {
+                    "Command": cmd[1],
+                    "Timestamp": datetime.datetime.now(),
+                    "CommitId": commit_id,
+                    "CommitMessage": "NA"
+                }
+            else:
+                f_commit_info = open(self.commit_info, "r")
+                commit_pair = json.loads(f_commit_info.read())
+                insert_obj = {
+                    "Command": cmd[1],
+                    "Timestamp": datetime.datetime.now(),
+                    "CommitId": commit_id,
+                    "CommitMessage": commit_pair[commit_id]["commit_msg"]
+                }
+        else:
+            insert_obj = {
+                "Command": cmd,
+                "Timestamp": datetime.datetime.now(),
+                "CommitId": "NA",
+                "CommitMessage": "NA"
+            }
         insert_obj = pd.json_normalize(insert_obj)
 
         df = pd.read_csv(self.log_info)
@@ -250,37 +275,40 @@ class VCS:
         f_commit_info = open(self.commit_info, "w")
         f_commit_head.write(curr_head)
         json.dump(commit_pair, f_commit_info)
+        return curr_head
 
     def push(self):
         f = open(self.commit_head, "r")
         curr_commit = f.read()
         f.close()
-        df = pd.read_csv(os.path.join(self.commit_area, curr_commit) + "/repo_info.csv")
+        df = pd.read_csv(os.path.join(self.commit_area, curr_commit, "repo_info.csv"))
         print(df)
         for i in df.index:
             if df['track_flag'][i] in [TrackedNew, TrackedMod, TrackedDel]:
                 path = df['filename'][i]
+                if "\\" in path:
+                    sep = "\\"
+                else:
+                    sep = "/"
                 sha = df['sha'][i]
                 len1 = len(self.RepoPath)
                 file_path = path[path.find(self.RepoPath) + len1 + 1:]
-                print(file_path)
                 create_dir_path = self.remote_main
-                while file_path.find("/") != -1:
-                    ind = file_path.find("/")
+                while file_path.find(sep) != -1:
+                    ind = file_path.find(sep)
                     if ind == 0:
                         fold = file_path[0:ind + 1]
                         file_path = file_path[ind + 1:]
                     else:
                         fold = file_path[0:ind]
                         file_path = file_path[ind:]
-                    if fold == "/":
+                    if fold == sep:
                         continue
                     print("folder->" + fold)
                     create_dir_path = os.path.join(create_dir_path, fold)
                     if not os.path.exists(create_dir_path):
                         os.mkdir(create_dir_path)
 
-                print("file->" + file_path)
                 file_final_path = os.path.join(create_dir_path, file_path)
                 source_path = os.path.join(self.repo_area, sha)
                 f = open(source_path + "." + file_path.split(".")[1], "r")
@@ -296,7 +324,6 @@ class VCS:
 
     def pull(self):
         shutil.copytree(self.RepoPath, self.pull_folder, dirs_exist_ok=True)
-        # path = self.remote_main
         print(self.remote_main, self.pull_folder)
         relative = pathlib.Path(os.path.abspath(self.remote_main))
         for p in pathlib.Path(relative).iterdir():

@@ -57,10 +57,6 @@ if __name__ == "__main__":
             else:
                 st.error("Not a Git Repo!!")
 
-        # git restore
-        elif arg_list[1] == "restore":
-            vcs_obj.restore()
-
         # git status
         elif arg_list[1] == "status":
             if vcs_obj.is_init:
@@ -102,12 +98,14 @@ if __name__ == "__main__":
         # git commit <options> <params>
         elif arg_list[1] == "commit":
             if vcs_obj.is_init:
-                vcs_obj.commit(arg_list)
+                commit_id = vcs_obj.commit(arg_list)
+                vcs_obj.log(arg_list, True, commit_id)
             else:
                 st.error("Not a Git Repo!")
 
         # git rollback -s <number> / -c <commit id>
         elif arg_list[1] == "rollback":
+            vcs_obj.log(arg_list[1])
             if vcs_obj.is_init:
                 res = vcs_obj.rollback(arg_list[2:])
                 st.write(res)
@@ -116,6 +114,7 @@ if __name__ == "__main__":
 
         # git diff <filename>
         elif arg_list[1] == "diff":
+            vcs_obj.log(arg_list[1])
             if len(arg_list) != 3:
                 st.error("Please enter : git diff <filename>")
             if vcs_obj.is_init:
@@ -132,12 +131,14 @@ if __name__ == "__main__":
                 st.error("Not a Git Repo!")
 
         elif arg_list[1] == "push":
+            vcs_obj.log(arg_list[1])
             if vcs_obj.is_init:
                 vcs_obj.push()
             else:
                 st.error("Not a Git Repo!")
 
         elif arg_list[1] == "pull":
+            vcs_obj.log(arg_list[1])
             if vcs_obj.is_init:
                 vcs_obj.pull()
             else:

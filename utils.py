@@ -38,12 +38,13 @@ def create_df(files_list, sha_list, track_flag):
     return df
 
 
-def create_log_df(cmd, timestamp, cid):
-    cols_list = ["ID", "Command", "Timestamp", "CommitId"]
+def create_log_df(cmd, timestamp, cid, cmsg):
+    cols_list = ["ID", "Command", "Timestamp", "CommitId", "CommitMessage"]
     df = pd.DataFrame(columns=cols_list)
     df['Command'] = cmd
     df['Timestamp'] = timestamp
     df['CommitId'] = cid
+    df['CommitMessage'] = cmsg
     df1 = pd.DataFrame()
     df = pd.concat([df, df1], ignore_index=True)
     df["ID"] = df.index
@@ -144,7 +145,10 @@ def create_on_move(df, repo_path, repo_area):
         ext = "." + des.split(".")[-1]
         source = str(os.path.join(repo_area, record.sha)) + ext
 
-        des_path = str(record.filename).replace(("\\" + str(record.filename).split("\\")[-1]), "")
+        if "\\" in record.filename:
+            des_path = str(record.filename).replace(("\\" + str(record.filename).split("\\")[-1]), "")
+        else:
+            des_path = str(record.filename).replace(("/" + str(record.filename).split("/")[-1]), "")
         is_exist = os.path.exists(des_path)
         if not is_exist:
             os.makedirs(des_path)
